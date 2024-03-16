@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Function to check password strength
+check_password_strength() {
+  if [[ ${#1} -ge 8 && "$1" == *[A-Z]* && "$1" == *[a-z]* && "$1" == *[0-9]* && "$1" == *[@#\$%^\&*()_+]* ]]
+  then
+    echo "Strong password"
+  else
+    echo "Weak password. Password should be at least 8 characters long, with uppercase, lowercase, number and special character."
+    exit 1
+  fi
+}
+
 # Function to encrypt data
 encrypt_data() {
   echo -n "$1" | openssl aes-256-cbc -a -salt -pass pass:"$2" 2>/dev/null
@@ -38,6 +49,7 @@ decrypt_file() {
 
 # User input for password and data
 read -p "Enter the password: " password
+check_password_strength "$password"
 read -p "Enter the data: " original_data
 
 # Test the functions
