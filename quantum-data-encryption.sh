@@ -11,40 +11,36 @@ check_password_strength() {
   fi
 }
 
+# Function to check command status
+check_command_status() {
+  if [ $? -ne 0 ]; then
+    echo "$1 failed."
+    exit 1
+  fi
+}
+
 # Function to encrypt data
 encrypt_data() {
   echo -n "$1" | openssl aes-256-cbc -a -salt -pass pass:"$2" 2>/dev/null
-  if [ $? -ne 0 ]; then
-    echo "Encryption failed."
-    exit 1
-  fi
+  check_command_status "Encryption"
 }
 
 # Function to decrypt data
 decrypt_data() {
   echo -n "$1" | openssl aes-256-cbc -d -a -pass pass:"$2" 2>/dev/null
-  if [ $? -ne 0 ]; then
-    echo "Decryption failed."
-    exit 1
-  fi
+  check_command_status "Decryption"
 }
 
 # Function to encrypt file
 encrypt_file() {
   openssl aes-256-cbc -a -salt -in "$1" -out "$1.enc" -pass pass:"$2" 2>/dev/null
-  if [ $? -ne 0 ]; then
-    echo "File encryption failed."
-    exit 1
-  fi
+  check_command_status "File encryption"
 }
 
 # Function to decrypt file
 decrypt_file() {
   openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>/dev/null
-  if [ $? -ne 0 ]; then
-    echo "File decryption failed."
-    exit 1
-  fi
+  check_command_status "File decryption"
 }
 
 # User input for password and data
