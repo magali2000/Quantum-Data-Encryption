@@ -23,24 +23,28 @@ check_command_status() {
 encrypt_data() {
   echo -n "$1" | openssl aes-256-cbc -a -salt -pass pass:"$2" 2>/dev/null
   check_command_status "Encryption"
+  echo "$(date): Encrypted data." >> log.txt
 }
 
 # Function to decrypt data
 decrypt_data() {
   echo -n "$1" | openssl aes-256-cbc -d -a -pass pass:"$2" 2>/dev/null
   check_command_status "Decryption"
+  echo "$(date): Decrypted data." >> log.txt
 }
 
 # Function to encrypt file
 encrypt_file() {
   openssl aes-256-cbc -a -salt -in "$1" -out "$1.enc" -pass pass:"$2" 2>/dev/null
   check_command_status "File encryption"
+  echo "$(date): Encrypted file $1." >> log.txt
 }
 
 # Function to decrypt file
 decrypt_file() {
   openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>/dev/null
   check_command_status "File decryption"
+  echo "$(date): Decrypted file $1." >> log.txt
 }
 
 # User input for password and data
