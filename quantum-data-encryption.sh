@@ -48,7 +48,7 @@ decrypt_file() {
 }
 
 # User input for password and data
-read -p "Enter the password: " password
+read -sp "Enter the password: " password
 check_password_strength "$password"
 read -p "Enter the data: " original_data
 
