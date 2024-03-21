@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Function to check if file exists
+check_file_exists() {
+  if [ ! -f "$1" ]; then
+    echo "File $1 does not exist."
+    exit 1
+  fi
+}
+
 # Function to check password strength
 check_password_strength() {
   if [[ ${#1} -ge 8 && "$1" == *[A-Z]* && "$1" == *[a-z]* && "$1" == *[0-9]* && "$1" == *[@#\$%^\&*()_+]* ]]
@@ -35,6 +43,7 @@ decrypt_data() {
 
 # Function to encrypt file
 encrypt_file() {
+  check_file_exists "$1"
   openssl aes-256-cbc -a -salt -in "$1" -out "$1.enc" -pass pass:"$2" 2>/dev/null
   check_command_status "File encryption"
   echo "$(date): Encrypted file $1." >> log.txt
@@ -42,6 +51,7 @@ encrypt_file() {
 
 # Function to decrypt file
 decrypt_file() {
+  check_file_exists "$1"
   openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>/dev/null
   check_command_status "File decryption"
   echo "$(date): Decrypted file $1." >> log.txt
