@@ -2,10 +2,13 @@
 
 # Function to check if file exists
 check_file_exists() {
-  if [ ! -f "$1" ]; then
-    echo "File $1 does not exist."
-    exit 1
-  fi
+  for file in "$@"
+  do
+    if [ ! -f "$file" ]; then
+      echo "File $file does not exist."
+      exit 1
+    fi
+  done
 }
 
 # Function to check password strength
@@ -70,12 +73,24 @@ decrypted_data=$(decrypt_data "$encrypted_data" "$password")
 echo "Decrypted data: $decrypted_data"
 
 # User input for file encryption and decryption
-read -p "Enter the file path to encrypt: " file_path
+echo "Enter the file paths to encrypt (separated by space): "
+read -a file_paths
 
-encrypt_file "$file_path" "$password"
-echo "File encrypted successfully."
+check_file_exists "${file_paths[@]}"
 
-read -p "Enter the encrypted file path to decrypt: " enc_file_path
+for file_path in "${file_paths[@]}"
+do
+  encrypt_file "$file_path" "$password"
+  echo "File $file_path encrypted successfully."
+done
 
-decrypt_file "$enc_file_path" "$password"
-echo "File decrypted successfully."
+echo "Enter the encrypted file paths to decrypt (separated by space): "
+read -a enc_file_paths
+
+check_file_exists "${enc_file_paths[@]}"
+
+for enc_file_path in "${enc_file_paths[@]}"
+do
+  decrypt_file "$enc_file_path" "$password"
+  echo "File $enc_file_path decrypted successfully."
+done
