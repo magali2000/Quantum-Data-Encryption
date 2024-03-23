@@ -18,7 +18,7 @@ check_password_strength() {
     echo "Strong password"
   else
     echo "Weak password. Password should be at least 8 characters long, with uppercase, lowercase, number and special character."
-    exit 1
+    return 1
   fi
 }
 
@@ -61,8 +61,17 @@ decrypt_file() {
 }
 
 # User input for password and data
-read -sp "Enter the password: " password
-check_password_strength "$password"
+for i in {1..3}
+do
+  read -sp "Enter the password: " password
+  if check_password_strength "$password"; then
+    break
+  elif [ $i -eq 3 ]; then
+    echo "Failed to provide a strong password in 3 attempts. Exiting."
+    exit 1
+  fi
+done
+
 read -p "Enter the data: " original_data
 
 # Test the functions
