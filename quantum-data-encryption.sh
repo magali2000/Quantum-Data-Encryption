@@ -55,9 +55,18 @@ encrypt_file() {
 # Function to decrypt file
 decrypt_file() {
   check_file_exists "$1"
-  openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>/dev/null
-  check_command_status "File decryption"
-  echo "$(date): Decrypted file $1." >> log.txt
+  for i in {1..3}
+  do
+    openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>/dev/null
+    if [ $? -eq 0 ]; then
+      echo "$(date): Decrypted file $1." >> log.txt
+      return 0
+    else
+      echo "Incorrect password. Please try again."
+    fi
+  done
+  echo "Failed to decrypt file after 3 attempts. Exiting."
+  exit 1
 }
 
 # User input for password and data
