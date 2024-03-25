@@ -32,16 +32,22 @@ check_command_status() {
 
 # Function to encrypt data
 encrypt_data() {
-  echo -n "$1" | openssl aes-256-cbc -a -salt -pass pass:"$2" 2>/dev/null
-  check_command_status "Encryption"
-  echo "$(date): Encrypted data." >> log.txt
+  for data in "$@"
+  do
+    echo -n "$data" | openssl aes-256-cbc -a -salt -pass pass:"$2" 2>/dev/null
+    check_command_status "Encryption"
+    echo "$(date): Encrypted data $data." >> log.txt
+  done
 }
 
 # Function to decrypt data
 decrypt_data() {
-  echo -n "$1" | openssl aes-256-cbc -d -a -pass pass:"$2" 2>/dev/null
-  check_command_status "Decryption"
-  echo "$(date): Decrypted data." >> log.txt
+  for data in "$@"
+  do
+    echo -n "$data" | openssl aes-256-cbc -d -a -pass pass:"$2" 2>/dev/null
+    check_command_status "Decryption"
+    echo "$(date): Decrypted data $data." >> log.txt
+  done
 }
 
 # Function to encrypt file
@@ -81,14 +87,16 @@ do
   fi
 done
 
-read -p "Enter the data: " original_data
+echo "Enter the data to encrypt (separated by space): "
+read -a original_data
 
 # Test the functions
-encrypted_data=$(encrypt_data "$original_data" "$password")
-echo "Encrypted data: $encrypted_data"
+encrypt_data "${original_data[@]}" "$password"
 
-decrypted_data=$(decrypt_data "$encrypted_data" "$password")
-echo "Decrypted data: $decrypted_data"
+echo "Enter the encrypted data to decrypt (separated by space): "
+read -a encrypted_data
+
+decrypt_data "${encrypted_data[@]}" "$password"
 
 # User input for file encryption and decryption
 echo "Enter the file paths to encrypt (separated by space): "
