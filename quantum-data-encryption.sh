@@ -36,6 +36,11 @@ encrypt_file() {
   openssl aes-256-cbc -a -salt -in "$1" -out "$1.enc" -pass pass:"$2" 2>/dev/null
   check_command_status "File encryption"
   echo "$(date): Encrypted file $1." >> log.txt
+  read -p "Do you want to delete the original file? (y/n): " del
+  if [[ "$del" == "y" || "$del" == "Y" ]]; then
+    rm "$1"
+    echo "$(date): Deleted original file $1." >> log.txt
+  fi
 }
 
 # Function to decrypt file
@@ -46,6 +51,11 @@ decrypt_file() {
     openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>/dev/null
     if [ $? -eq 0 ]; then
       echo "$(date): Decrypted file $1." >> log.txt
+      read -p "Do you want to delete the encrypted file? (y/n): " del
+      if [[ "$del" == "y" || "$del" == "Y" ]]; then
+        rm "$1"
+        echo "$(date): Deleted encrypted file $1." >> log.txt
+      fi
       return 0
     else
       echo "Incorrect password. Please try again."
