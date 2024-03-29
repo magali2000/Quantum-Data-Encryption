@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Function to check if openssl is installed
+check_openssl_installed() {
+  if ! command -v openssl &> /dev/null
+  then
+    echo "openssl could not be found. Please install openssl and try again."
+    exit 1
+  fi
+}
+
 # Function to check if file exists
 check_file_exists() {
   for file in "$@"
@@ -64,6 +73,9 @@ decrypt_file() {
   echo "Failed to decrypt file after 3 attempts. Exiting."
   exit 1
 }
+
+# Check if openssl is installed
+check_openssl_installed
 
 # User input for file encryption and decryption
 echo "Enter the file paths to encrypt (separated by space): "
