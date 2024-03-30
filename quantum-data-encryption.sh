@@ -20,6 +20,22 @@ check_file_exists() {
   done
 }
 
+# Function to check if file is already encrypted
+check_file_encrypted() {
+  if [[ $1 == *.enc ]]; then
+    echo "File $1 is already encrypted."
+    return 1
+  fi
+}
+
+# Function to check if file is already decrypted
+check_file_decrypted() {
+  if [[ $1 != *.enc ]]; then
+    echo "File $1 is already decrypted."
+    return 1
+  fi
+}
+
 # Function to check password strength
 check_password_strength() {
   if [[ ${#1} -ge 8 && "$1" == *[A-Z]* && "$1" == *[a-z]* && "$1" == *[0-9]* && "$1" == *[@#\$%^\&*()_+]* ]]
