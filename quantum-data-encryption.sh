@@ -73,7 +73,7 @@ decrypt_file() {
   check_file_exists "$1"
   for i in {1..3}
   do
-    openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>/dev/null
+    openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>error.log
     if [ $? -eq 0 ]; then
       echo "$(date): Decrypted file $1." >> log.txt
       read -p "Do you want to delete the encrypted file? (y/n): " del
@@ -83,7 +83,12 @@ decrypt_file() {
       fi
       return 0
     else
-      echo "Incorrect password. Please try again."
+      if grep -q "bad decrypt" error.log; then
+        echo "Incorrect password. Please try again."
+      else
+        echo "Decryption failed due to other reasons. Please check the error.log file for more details."
+        exit 1
+      fi
     fi
   done
   echo "Failed to decrypt file after 3 attempts. Exiting."
