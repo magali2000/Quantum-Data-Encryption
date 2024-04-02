@@ -58,6 +58,7 @@ check_command_status() {
 # Function to encrypt file
 encrypt_file() {
   check_file_exists "$1"
+  check_file_encrypted "$1"
   openssl aes-256-cbc -a -salt -in "$1" -out "$1.enc" -pass pass:"$2" 2>/dev/null
   check_command_status "File encryption"
   echo "$(date): Encrypted file $1." >> log.txt
@@ -71,6 +72,7 @@ encrypt_file() {
 # Function to decrypt file
 decrypt_file() {
   check_file_exists "$1"
+  check_file_decrypted "$1"
   for i in {1..3}
   do
     openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>error.log
