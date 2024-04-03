@@ -100,44 +100,56 @@ decrypt_file() {
 # Check if openssl is installed
 check_openssl_installed
 
-# User input for file encryption and decryption
-echo "Enter the file paths to encrypt (separated by space): "
-read -a file_paths
+# User input for operation choice
+echo "What operation would you like to perform? (encrypt/decrypt): "
+read operation
 
-check_file_exists "${file_paths[@]}"
+case $operation in
+  "encrypt")
+    echo "Enter the file paths to encrypt (separated by space): "
+    read -a file_paths
 
-for file_path in "${file_paths[@]}"
-do
-  for i in {1..3}
-  do
-    read -sp "Enter the password for $file_path: " password
-    if check_password_strength "$password"; then
-      encrypt_file "$file_path" "$password"
-      echo "File $file_path encrypted successfully."
-      break
-    elif [ $i -eq 3 ]; then
-      echo "Failed to provide a strong password in 3 attempts. Exiting."
-      exit 1
-    fi
-  done
-done
+    check_file_exists "${file_paths[@]}"
 
-echo "Enter the encrypted file paths to decrypt (separated by space): "
-read -a enc_file_paths
+    for file_path in "${file_paths[@]}"
+    do
+      for i in {1..3}
+      do
+        read -sp "Enter the password for $file_path: " password
+        if check_password_strength "$password"; then
+          encrypt_file "$file_path" "$password"
+          echo "File $file_path encrypted successfully."
+          break
+        elif [ $i -eq 3 ]; then
+          echo "Failed to provide a strong password in 3 attempts. Exiting."
+          exit 1
+        fi
+      done
+    done
+    ;;
+  "decrypt")
+    echo "Enter the encrypted file paths to decrypt (separated by space): "
+    read -a enc_file_paths
 
-check_file_exists "${enc_file_paths[@]}"
+    check_file_exists "${enc_file_paths[@]}"
 
-for enc_file_path in "${enc_file_paths[@]}"
-do
-  for i in {1..3}
-  do
-    read -sp "Enter the password for $enc_file_path: " password
-    if decrypt_file "$enc_file_path" "$password"; then
-      echo "File $enc_file_path decrypted successfully."
-      break
-    elif [ $i -eq 3 ]; then
-      echo "Failed to decrypt file after 3 attempts. Exiting."
-      exit 1
-    fi
-  done
-done
+    for enc_file_path in "${enc_file_paths[@]}"
+    do
+      for i in {1..3}
+      do
+        read -sp "Enter the password for $enc_file_path: " password
+        if decrypt_file "$enc_file_path" "$password"; then
+          echo "File $enc_file_path decrypted successfully."
+          break
+        elif [ $i -eq 3 ]; then
+          echo "Failed to decrypt file after 3 attempts. Exiting."
+          exit 1
+        fi
+      done
+    done
+    ;;
+  *)
+    echo "Invalid operation. Please enter either 'encrypt' or 'decrypt'."
+    exit 1
+    ;;
+esac
