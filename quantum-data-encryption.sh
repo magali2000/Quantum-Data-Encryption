@@ -55,6 +55,29 @@ check_command_status() {
   fi
 }
 
+# Function to get password
+get_password() {
+  echo "Do you want to use a password from a file? (y/n): "
+  read use_file
+  if [[ "$use_file" == "y" || "$use_file" == "Y" ]]; then
+    echo "Enter the path to the password file: "
+    read password_file
+    check_file_exists "$password_file"
+    password=$(cat "$password_file")
+  else
+    for i in {1..3}
+    do
+      read -sp "Enter the password: " password
+      if check_password_strength "$password"; then
+        break
+      elif [ $i -eq 3 ]; then
+        echo "Failed to provide a strong password in 3 attempts. Exiting."
+        exit 1
+      fi
+    done
+  fi
+}
+
 # Function to encrypt file
 encrypt_file() {
   check_file_exists "$1"
@@ -113,18 +136,9 @@ case $operation in
 
     for file_path in "${file_paths[@]}"
     do
-      for i in {1..3}
-      do
-        read -sp "Enter the password for $file_path: " password
-        if check_password_strength "$password"; then
-          encrypt_file "$file_path" "$password"
-          echo "File $file_path encrypted successfully."
-          break
-        elif [ $i -eq 3 ]; then
-          echo "Failed to provide a strong password in 3 attempts. Exiting."
-          exit 1
-        fi
-      done
+      get_password
+      encrypt_file "$file_path" "$password"
+      echo "File $file_path encrypted successfully."
     done
     ;;
   "decrypt")
@@ -135,17 +149,13 @@ case $operation in
 
     for enc_file_path in "${enc_file_paths[@]}"
     do
-      for i in {1..3}
-      do
-        read -sp "Enter the password for $enc_file_path: " password
-        if decrypt_file "$enc_file_path" "$password"; then
-          echo "File $enc_file_path decrypted successfully."
-          break
-        elif [ $i -eq 3 ]; then
-          echo "Failed to decrypt file after 3 attempts. Exiting."
-          exit 1
-        fi
-      done
+      get_password
+      if decrypt_file "$enc_file_path" "$password"; then
+        echo "File $enc_file_path decrypted successfully."
+      else
+        echo "Failed to decrypt file after 3 attempts. Exiting."
+        exit 1
+      fi
     done
     ;;
   *)
