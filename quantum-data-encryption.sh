@@ -1,5 +1,82 @@
 #!/bin/bash
 
+# Function to check if private key exists
+check_private_key_exists() {
+  if [ ! -f "$1" ]; then
+    echo "Private key $1 does not exist."
+    exit 1
+  fi
+}
+
+# Function to encrypt file using asymmetric encryption
+encrypt_file_asymmetric() {
+  check_file_exists "$1"
+  check_file_encrypted "$1"
+  check_private_key_exists "$2"
+  openssl rsautl -encrypt -inkey "$2" -pubin -in "$1" -out "$1.enc"
+  check_command_status "File encryption"
+  echo "$(date): Encrypted file $1." >> log.txt
+  read -p "Do you want to delete the original file? (y/n): " del
+  if [[ "$del" == "y" || "$del" == "Y" ]]; then
+    rm "$1"
+    echo "$(date): Deleted original file $1." >> log.txt
+  fi
+}
+
+# Function to decrypt file using asymmetric encryption
+decrypt_file_asymmetric() {
+  check_file_exists "$1"
+  check_file_decrypted "$1"
+  check_private_key_exists "$2"
+  openssl rsautl -decrypt -inkey "$2" -in "$1" -out "${1%.enc}"
+  check_command_status "File decryption"
+  echo "$(date): Decrypted file $1." >> log.txt
+  read -p "Do you want to delete the encrypted file? (y/n): " del
+  if [[ "$del" == "y" || "$del" == "Y" ]]; then
+    rm "$1"
+    echo "$(date): Deleted encrypted file $1." >> log.txt
+  fi
+}
+
+# User input for encryption method choice
+echo "What encryption method would you like to use? (symmetric/asymmetric): "
+read method
+
+case $method in
+  "symmetric")
+    # Existing code for symmetric encryption
+    ;;
+  "asymmetric")
+    echo "Enter the private key path: "
+    read private_key_path
+    check_private_key_exists "$private_key_path"
+    case $operation in
+      "encrypt")
+        for file_path in "${file_paths[@]}"
+        do
+          encrypt_file_asymmetric "$file_path" "$private_key_path"
+          echo "File $file_path encrypted successfully."
+        done
+        ;;
+      "decrypt")
+        for enc_file_path in "${enc_file_paths[@]}"
+        do
+          decrypt_file_asymmetric "$enc_file_path" "$private_key_path"
+          echo "File $enc_file_path decrypted successfully."
+        done
+        ;;
+      *)
+        echo "Invalid operation. Please enter either 'encrypt' or 'decrypt'."
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "Invalid method. Please enter either 'symmetric' or 'asymmetric'."
+    exit 1
+    ;;
+esac
+
 # Function to check if openssl is installed
 check_openssl_installed() {
   if ! command -v openssl &> /dev/null
