@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Function to check if private key exists
-check_private_key_exists() {
+# Function to check if public key exists
+check_public_key_exists() {
   if [ ! -f "$1" ]; then
-    echo "Private key $1 does not exist."
+    echo "Public key $1 does not exist."
     exit 1
   fi
 }
@@ -12,7 +12,7 @@ check_private_key_exists() {
 encrypt_file_asymmetric() {
   check_file_exists "$1"
   check_file_encrypted "$1"
-  check_private_key_exists "$2"
+  check_public_key_exists "$2"
   openssl rsautl -encrypt -inkey "$2" -pubin -in "$1" -out "$1.enc"
   check_command_status "File encryption"
   echo "$(date): Encrypted file $1." >> log.txt
@@ -47,18 +47,23 @@ case $method in
     # Existing code for symmetric encryption
     ;;
   "asymmetric")
-    echo "Enter the private key path: "
-    read private_key_path
-    check_private_key_exists "$private_key_path"
+    echo "Enter the operation (encrypt/decrypt): "
+    read operation
     case $operation in
       "encrypt")
+        echo "Enter the public key path: "
+        read public_key_path
+        check_public_key_exists "$public_key_path"
         for file_path in "${file_paths[@]}"
         do
-          encrypt_file_asymmetric "$file_path" "$private_key_path"
+          encrypt_file_asymmetric "$file_path" "$public_key_path"
           echo "File $file_path encrypted successfully."
         done
         ;;
       "decrypt")
+        echo "Enter the private key path: "
+        read private_key_path
+        check_private_key_exists "$private_key_path"
         for enc_file_path in "${enc_file_paths[@]}"
         do
           decrypt_file_asymmetric "$enc_file_path" "$private_key_path"
