@@ -8,6 +8,14 @@ check_public_key_exists() {
   fi
 }
 
+# Function to check if private key exists
+check_private_key_exists() {
+  if [ ! -f "$1" ]; then
+    echo "Private key $1 does not exist."
+    exit 1
+  fi
+}
+
 # Function to encrypt file using asymmetric encryption
 encrypt_file_asymmetric() {
   check_file_exists "$1"
