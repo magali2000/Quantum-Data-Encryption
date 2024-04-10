@@ -213,6 +213,27 @@ decrypt_file() {
 # Check if openssl is installed
 check_openssl_installed
 
+# Function to get password or key file
+get_password_or_keyfile() {
+  echo "Do you want to use a password or a key file? (password/keyfile): "
+  read method
+  case $method in
+    "password")
+      get_password
+      ;;
+    "keyfile")
+      echo "Enter the path to the key file: "
+      read keyfile
+      check_file_exists "$keyfile"
+      password=$(cat "$keyfile")
+      ;;
+    *)
+      echo "Invalid method. Please enter either 'password' or 'keyfile'."
+      exit 1
+      ;;
+  esac
+}
+
 # User input for operation choice
 echo "What operation would you like to perform? (encrypt/decrypt): "
 read operation
@@ -226,7 +247,7 @@ case $operation in
 
     for file_path in "${file_paths[@]}"
     do
-      get_password
+      get_password_or_keyfile
       encrypt_file "$file_path" "$password"
       echo "File $file_path encrypted successfully."
     done
@@ -239,7 +260,7 @@ case $operation in
 
     for enc_file_path in "${enc_file_paths[@]}"
     do
-      get_password
+      get_password_or_keyfile
       if decrypt_file "$enc_file_path" "$password"; then
         echo "File $enc_file_path decrypted successfully."
       else
