@@ -16,6 +16,17 @@ check_private_key_exists() {
   fi
 }
 
+# User input for logging choice
+echo "Do you want to log the operations? (y/n): "
+read log_choice
+
+# Function to log operations
+log_operation() {
+  if [[ "$log_choice" == "y" || "$log_choice" == "Y" ]]; then
+    echo "$(date): $1" >> log.txt
+  fi
+}
+
 # Function to encrypt file using asymmetric encryption
 encrypt_file_asymmetric() {
   check_file_exists "$1"
@@ -23,11 +34,11 @@ encrypt_file_asymmetric() {
   check_public_key_exists "$2"
   openssl rsautl -encrypt -inkey "$2" -pubin -in "$1" -out "$1.enc"
   check_command_status "File encryption"
-  echo "$(date): Encrypted file $1." >> log.txt
+  log_operation "Encrypted file $1."
   read -p "Do you want to delete the original file? (y/n): " del
   if [[ "$del" == "y" || "$del" == "Y" ]]; then
     rm "$1"
-    echo "$(date): Deleted original file $1." >> log.txt
+    log_operation "Deleted original file $1."
   fi
 }
 
