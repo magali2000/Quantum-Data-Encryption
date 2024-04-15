@@ -178,47 +178,63 @@ get_password() {
     done
   fi
 }
+# Function to compress file
+compress_file() {
+  check_file_exists "$1"
+  gzip "$1"
+  check_command_status "File compression"
+  log_operation "Compressed file $1."
+}
 
-# Function to encrypt file
+# Function to decompress file
+decompress_file() {
+  check_file_exists "$1"
+  if [[ $1 != *.gz ]]; then
+    echo "File $1 is not compressed."
+    return 1
+  fi
+  gunzip "$1"
+  check_command_status "File decompression"
+  log_operation "Decompressed file $1."
+}
+
+# Modify the encrypt_file function
 encrypt_file() {
   check_file_exists "$1"
   check_file_encrypted "$1"
-  openssl aes-256-cbc -a -salt -in "$1" -out "$1.enc" -pass pass:"$2" 2>/dev/null
+  compress_file "$1"
+  openssl aes-256-cbc -a -salt -in "$1.gz" -out "$1.enc" -pass pass:"$2" 2>/dev/null
   check_command_status "File encryption"
-  echo "$(date): Encrypted file $1." >> log.txt
-  read -p "Do you want to delete the original file? (y/n): " del
+  log_operation "Encrypted file $1."
+  read -p "Do you want to delete the original compressed file? (y/n): " del
   if [[ "$del" == "y" || "$del" == "Y" ]]; then
-    rm "$1"
-    echo "$(date): Deleted original file $1." >> log.txt
+    rm "$1.gz"
+    log_operation "Deleted original compressed file $1.gz."
   fi
 }
 
-# Function to decrypt file
+# Modify the decrypt_file function
 decrypt_file() {
   check_file_exists "$1"
   check_file_decrypted "$1"
-  for i in {1..3}
-  do
-    openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}" -pass pass:"$2" 2>error.log
-    if [ $? -eq 0 ]; then
-      echo "$(date): Decrypted file $1." >> log.txt
-      read -p "Do you want to delete the encrypted file? (y/n): " del
-      if [[ "$del" == "y" || "$del" == "Y" ]]; then
-        rm "$1"
-        echo "$(date): Deleted encrypted file $1." >> log.txt
-      fi
-      return 0
-    else
-      if grep -q "bad decrypt" error.log; then
-        echo "Incorrect password. Please try again."
-      else
-        echo "Decryption failed due to other reasons. Please check the error.log file for more details."
-        exit 1
-      fi
+  openssl aes-256-cbc -d -a -in "$1" -out "${1%.enc}.gz" -pass pass:"$2" 2>error.log
+  if [ $? -eq 0 ]; then
+    decompress_file "${1%.enc}.gz"
+    log_operation "Decrypted file $1."
+    read -p "Do you want to delete the encrypted file? (y/n): " del
+    if [[ "$del" == "y" || "$del" == "Y" ]]; then
+      rm "$1"
+      log_operation "Deleted encrypted file $1."
     fi
-  done
-  echo "Failed to decrypt file after 3 attempts. Exiting."
-  exit 1
+    return 0
+  else
+    if grep -q "bad decrypt" error.log; then
+      echo "Incorrect password. Please try again."
+    else
+      echo "Decryption failed due to other reasons. Please check the error.log file for more details."
+      exit 1
+    fi
+  fi
 }
 
 # Check if openssl is installed
