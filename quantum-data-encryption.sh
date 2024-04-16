@@ -26,7 +26,6 @@ log_operation() {
     echo "$(date): $1" >> log.txt
   fi
 }
-
 # Function to encrypt file using asymmetric encryption
 encrypt_file_asymmetric() {
   check_file_exists "$1"
@@ -49,11 +48,11 @@ decrypt_file_asymmetric() {
   check_private_key_exists "$2"
   openssl rsautl -decrypt -inkey "$2" -in "$1" -out "${1%.enc}"
   check_command_status "File decryption"
-  echo "$(date): Decrypted file $1." >> log.txt
+  log_operation "Decrypted file $1."
   read -p "Do you want to delete the encrypted file? (y/n): " del
   if [[ "$del" == "y" || "$del" == "Y" ]]; then
     rm "$1"
-    echo "$(date): Deleted encrypted file $1." >> log.txt
+    log_operation "Deleted encrypted file $1."
   fi
 }
 
@@ -62,29 +61,34 @@ echo "What encryption method would you like to use? (symmetric/asymmetric): "
 read method
 
 case $method in
-  "symmetric")
-    # Existing code for symmetric encryption
-    ;;
   "asymmetric")
     echo "Enter the operation (encrypt/decrypt): "
     read operation
     case $operation in
       "encrypt")
-        echo "Enter the public key path: "
-        read public_key_path
-        check_public_key_exists "$public_key_path"
-        for file_path in "${file_paths[@]}"
+        echo "Enter the number of files to encrypt: "
+        read num_files
+        for (( i=0; i<$num_files; i++ ))
         do
+          echo "Enter the file path: "
+          read file_path
+          echo "Enter the public key path: "
+          read public_key_path
+          check_public_key_exists "$public_key_path"
           encrypt_file_asymmetric "$file_path" "$public_key_path"
           echo "File $file_path encrypted successfully."
         done
         ;;
       "decrypt")
-        echo "Enter the private key path: "
-        read private_key_path
-        check_private_key_exists "$private_key_path"
-        for enc_file_path in "${enc_file_paths[@]}"
+        echo "Enter the number of files to decrypt: "
+        read num_files
+        for (( i=0; i<$num_files; i++ ))
         do
+          echo "Enter the encrypted file path: "
+          read enc_file_path
+          echo "Enter the private key path: "
+          read private_key_path
+          check_private_key_exists "$private_key_path"
           decrypt_file_asymmetric "$enc_file_path" "$private_key_path"
           echo "File $enc_file_path decrypted successfully."
         done
