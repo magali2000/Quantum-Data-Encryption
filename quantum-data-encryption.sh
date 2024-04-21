@@ -265,71 +265,38 @@ get_password_or_keyfile() {
   esac
 }
 
-# User input for operation choice
+# Function to encrypt multiple files
+encrypt_files() {
+  for file in "$@"
+  do
+    encrypt_file "$file" "$password"
+  done
+}
+
+# Function to decrypt multiple files
+decrypt_files() {
+  for file in "$@"
+  do
+    decrypt_file "$file" "$password"
+  done
+}
+
+# Modify the user input for operation choice
 echo "What operation would you like to perform? (encrypt/decrypt): "
 read operation
 
 case $operation in
   "encrypt")
-    echo "Enter the number of files to encrypt: "
-    read num_files
-    for (( i=0; i<$num_files; i++ ))
-    do
-      echo "Enter the file path: "
-      read file_path
-      echo "What encryption method would you like to use for this file? (symmetric/asymmetric): "
-      read method
-      case $method in
-        "symmetric")
-          get_password_or_keyfile
-          encrypt_file "$file_path" "$password"
-          ;;
-        "asymmetric")
-          echo "Enter the public key path: "
-          read public_key_path
-          check_public_key_exists "$public_key_path"
-          encrypt_file_asymmetric "$file_path" "$public_key_path"
-          ;;
-        *)
-          echo "Invalid method. Please enter either 'symmetric' or 'asymmetric'."
-          exit 1
-          ;;
-      esac
-      echo "File $file_path encrypted successfully."
-    done
+    echo "Enter the files to encrypt (separated by space): "
+    read -a files
+    get_password_or_keyfile
+    encrypt_files "${files[@]}"
     ;;
   "decrypt")
-    echo "Enter the number of files to decrypt: "
-    read num_files
-    for (( i=0; i<$num_files; i++ ))
-    do
-      echo "Enter the encrypted file path: "
-      read enc_file_path
-      echo "What decryption method would you like to use for this file? (symmetric/asymmetric): "
-      read method
-      case $method in
-        "symmetric")
-          get_password_or_keyfile
-          if decrypt_file "$enc_file_path" "$password"; then
-            echo "File $enc_file_path decrypted successfully."
-          else
-            echo "Failed to decrypt file after 3 attempts. Exiting."
-            exit 1
-          fi
-          ;;
-        "asymmetric")
-          echo "Enter the private key path: "
-          read private_key_path
-          check_private_key_exists "$private_key_path"
-          decrypt_file_asymmetric "$enc_file_path" "$private_key_path"
-          echo "File $enc_file_path decrypted successfully."
-          ;;
-        *)
-          echo "Invalid method. Please enter either 'symmetric' or 'asymmetric'."
-          exit 1
-          ;;
-      esac
-    done
+    echo "Enter the files to decrypt (separated by space): "
+    read -a files
+    get_password_or_keyfile
+    decrypt_files "${files[@]}"
     ;;
   *)
     echo "Invalid operation. Please enter either 'encrypt' or 'decrypt'."
