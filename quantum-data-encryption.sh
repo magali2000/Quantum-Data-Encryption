@@ -281,6 +281,32 @@ decrypt_files() {
   done
 }
 
+# Function to encrypt multiple files with different keys
+encrypt_files_asymmetric() {
+  local -n files=$1
+  local -n keys=$2
+  if [ ${#files[@]} -ne ${#keys[@]} ]; then
+    echo "The number of files and keys do not match."
+    exit 1
+  fi
+  for i in ${!files[@]}; do
+    encrypt_file_asymmetric "${files[i]}" "${keys[i]}"
+  done
+}
+
+# Function to decrypt multiple files with different keys
+decrypt_files_asymmetric() {
+  local -n files=$1
+  local -n keys=$2
+  if [ ${#files[@]} -ne ${#keys[@]} ]; then
+    echo "The number of files and keys do not match."
+    exit 1
+  fi
+  for i in ${!files[@]}; do
+    decrypt_file_asymmetric "${files[i]}" "${keys[i]}"
+  done
+}
+
 # Modify the user input for operation choice
 echo "What operation would you like to perform? (encrypt/decrypt): "
 read operation
@@ -289,17 +315,21 @@ case $operation in
   "encrypt")
     echo "Enter the files to encrypt (separated by space): "
     read -a files
-    get_password_or_keyfile
-    encrypt_files "${files[@]}"
+    echo "Enter the corresponding public keys for the files (separated by space): "
+    read -a public_keys
+    encrypt_files_asymmetric files public_keys
     ;;
   "decrypt")
     echo "Enter the files to decrypt (separated by space): "
     read -a files
-    get_password_or_keyfile
-    decrypt_files "${files[@]}"
+    echo "Enter the corresponding private keys for the files (separated by space): "
+    read -a private_keys
+    decrypt_files_asymmetric files private_keys
     ;;
   *)
     echo "Invalid operation. Please enter either 'encrypt' or 'decrypt'."
     exit 1
     ;;
 esac
+
+
