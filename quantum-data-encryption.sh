@@ -56,6 +56,30 @@ decrypt_file_asymmetric() {
   fi
 }
 
+# Function to encrypt multiple files using asymmetric encryption
+encrypt_files_asymmetric() {
+  files=("$@")
+  echo "Enter the corresponding public keys for the files (separated by space): "
+  read -a public_keys
+  for index in "${!files[@]}"; do
+    check_public_key_exists "${public_keys[index]}"
+    encrypt_file_asymmetric "${files[index]}" "${public_keys[index]}"
+    echo "File ${files[index]} encrypted successfully."
+  done
+}
+
+# Function to decrypt multiple files using asymmetric encryption
+decrypt_files_asymmetric() {
+  files=("$@")
+  echo "Enter the corresponding private keys for the files (separated by space): "
+  read -a private_keys
+  for index in "${!files[@]}"; do
+    check_private_key_exists "${private_keys[index]}"
+    decrypt_file_asymmetric "${files[index]}" "${private_keys[index]}"
+    echo "File ${files[index]} decrypted successfully."
+  done
+}
+
 # User input for encryption method choice
 echo "What encryption method would you like to use? (symmetric/asymmetric): "
 read method
