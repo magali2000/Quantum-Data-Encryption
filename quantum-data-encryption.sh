@@ -341,6 +341,24 @@ decrypt_multiple_files() {
   done
 }
 
+# Function to encrypt multiple files
+encrypt_multiple_files_symmetric() {
+  get_password_or_keyfile
+  for file in "$@"
+  do
+    encrypt_file "$file" "$password"
+  done
+}
+
+# Function to decrypt multiple files
+decrypt_multiple_files_symmetric() {
+  get_password_or_keyfile
+  for file in "$@"
+  do
+    decrypt_file "$file" "$password"
+  done
+}
+
 # Modify the user input for operation choice
 echo "What operation would you like to perform? (encrypt/decrypt): "
 read operation
@@ -353,7 +371,7 @@ case $operation in
       "symmetric")
         echo "Enter the files to encrypt (separated by space): "
         read -a files
-        encrypt_multiple_files "${files[@]}"
+        encrypt_multiple_files_symmetric "${files[@]}"
         ;;
       "asymmetric")
         echo "Enter the files to encrypt (separated by space): "
@@ -373,7 +391,7 @@ case $operation in
       "symmetric")
         echo "Enter the files to decrypt (separated by space): "
         read -a files
-        decrypt_multiple_files "${files[@]}"
+        decrypt_multiple_files_symmetric "${files[@]}"
         ;;
       "asymmetric")
         echo "Enter the files to decrypt (separated by space): "
