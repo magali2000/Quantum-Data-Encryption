@@ -359,6 +359,18 @@ decrypt_multiple_files_symmetric() {
   done
 }
 
+# Function to encrypt directory
+encrypt_directory() {
+  get_password_or_keyfile
+  find "$1" -type f -exec bash -c 'encrypt_file "$0" "$password"' {} \;
+}
+
+# Function to decrypt directory
+decrypt_directory() {
+  get_password_or_keyfile
+  find "$1" -type f -exec bash -c 'decrypt_file "$0" "$password"' {} \;
+}
+
 # Modify the user input for operation choice
 echo "What operation would you like to perform? (encrypt/decrypt): "
 read operation
@@ -369,9 +381,15 @@ case $operation in
     read method
     case $method in
       "symmetric")
-        echo "Enter the files to encrypt (separated by space): "
-        read -a files
-        encrypt_multiple_files_symmetric "${files[@]}"
+        echo "Enter the files or directories to encrypt (separated by space): "
+        read -a items
+        for item in "${items[@]}"; do
+          if [ -d "$item" ]; then
+            encrypt_directory "$item"
+          else
+            encrypt_file "$item" "$password"
+          fi
+        done
         ;;
       "asymmetric")
         echo "Enter the files to encrypt (separated by space): "
@@ -389,9 +407,15 @@ case $operation in
     read method
     case $method in
       "symmetric")
-        echo "Enter the files to decrypt (separated by space): "
-        read -a files
-        decrypt_multiple_files_symmetric "${files[@]}"
+        echo "Enter the files or directories to decrypt (separated by space): "
+        read -a items
+        for item in "${items[@]}"; do
+          if [ -d "$item" ]; then
+            decrypt_directory "$item"
+          else
+            decrypt_file "$item" "$password"
+          fi
+        done
         ;;
       "asymmetric")
         echo "Enter the files to decrypt (separated by space): "
