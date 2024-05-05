@@ -371,6 +371,48 @@ decrypt_directory() {
   find "$1" -type f -exec bash -c 'decrypt_file "$0" "$password"' {} \;
 }
 
+# Function to encrypt multiple directories
+encrypt_multiple_directories() {
+  get_password_or_keyfile
+  for dir in "$@"
+  do
+    encrypt_directory "$dir"
+  done
+}
+
+# Function to decrypt multiple directories
+decrypt_multiple_directories() {
+  get_password_or_keyfile
+  for dir in "$@"
+  do
+    decrypt_directory "$dir"
+  done
+}
+
+# Function to encrypt multiple directories using asymmetric encryption
+encrypt_directories_asymmetric() {
+  dirs=("$@")
+  echo "Enter the corresponding public keys for the directories (separated by space): "
+  read -a public_keys
+  for index in "${!dirs[@]}"; do
+    check_public_key_exists "${public_keys[index]}"
+    encrypt_directory "${dirs[index]}" "${public_keys[index]}"
+    echo "Directory ${dirs[index]} encrypted successfully."
+  done
+}
+
+# Function to decrypt multiple directories using asymmetric encryption
+decrypt_directories_asymmetric() {
+  dirs=("$@")
+  echo "Enter the corresponding private keys for the directories (separated by space): "
+  read -a private_keys
+  for index in "${!dirs[@]}"; do
+    check_private_key_exists "${private_keys[index]}"
+    decrypt_directory "${dirs[index]}" "${private_keys[index]}"
+    echo "Directory ${dirs[index]} decrypted successfully."
+  done
+}
+
 # Modify the user input for operation choice
 echo "What operation would you like to perform? (encrypt/decrypt): "
 read operation
